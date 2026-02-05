@@ -1,0 +1,8 @@
+{
+  "mode": "fixed",
+  "fixed_minutes": 1,
+  "min_minutes": 1,
+  "max_minutes": 1,
+  "enabled": false,
+  "language_mode": "english"
+}
