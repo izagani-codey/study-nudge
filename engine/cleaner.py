@@ -1,9 +1,10 @@
 import re
 import json
+from app_paths import data_file
 
 def load_language_mode():
     try:
-        with open("config.json", "r") as f:
+        with open(data_file("config.json"), "r", encoding="utf-8") as f:
             return json.load(f).get("language_mode", "mixed")
     except:
         return "mixed"
