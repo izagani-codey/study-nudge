@@ -172,6 +172,66 @@ def generate_questions():
     except Exception as exc:
         messagebox.showerror("Generation failed", str(exc))
         return
+    result = subprocess.run(["python", "main.py"], capture_output=True, text=True)
+    if result.returncode != 0:
+        messagebox.showerror("Generation failed", result.stderr.strip() or "Unknown error")
+        return
+
+    messagebox.showinfo("Done", "Questions generated successfully!")
+
+
+# -------------------- UI SETUP --------------------
+root = tk.Tk()
+root.title("Study Nudge – Control Panel")
+root.geometry("520x470")
+
+cfg = load_config()
+
+title = tk.Label(root, text="Study Nudge Control Panel", font=("Arial", 14))
+title.pack(pady=10)
+
+btn_select = tk.Button(root, text="Select PDF", command=select_pdf)
+btn_select.pack(pady=5)
+
+pdf_label = tk.Label(root, text="No PDF selected")
+pdf_label.pack(pady=5)
+
+btn_generate = tk.Button(root, text="Generate Questions", command=generate_questions)
+btn_generate.pack(pady=10)
+
+status_label = tk.Label(root, text="Status: STOPPED", fg="red")
+status_label.pack(pady=10)
+
+interval_frame = tk.Frame(root)
+interval_frame.pack(pady=4)
+
+tk.Label(interval_frame, text="Popup interval (minutes):").pack(side="left", padx=(0, 8))
+interval_var = tk.StringVar(value=str(cfg.get("fixed_minutes", 45)))
+interval_entry = tk.Entry(interval_frame, textvariable=interval_var, width=8)
+interval_entry.pack(side="left")
+interval_entry.bind("<Return>", set_interval_minutes)
+
+tk.Button(interval_frame, text="Apply", command=set_interval_minutes).pack(side="left", padx=8)
+
+btn_start = tk.Button(root, text="▶ Start Study Mode", command=start_scheduler)
+btn_start.pack(pady=5)
+
+btn_stop = tk.Button(root, text="⏹ Stop Study Mode", command=stop_scheduler)
+btn_stop.pack(pady=5)
+
+lang_label = tk.Label(root, text="Language Mode:")
+lang_label.pack(pady=5)
+
+lang_var = tk.StringVar(value=cfg.get("language_mode", "english"))
+lang_menu = ttk.Combobox(
+    root,
+    textvariable=lang_var,
+    values=["english", "dhivehi", "mixed"],
+    state="readonly",
+    width=15
+)
+lang_menu.pack(pady=5)
+lang_menu.bind("<<ComboboxSelected>>", lambda e: set_language_mode(lang_var.get()))
 
     messagebox.showinfo("Done", f"Generated {count} questions\nSaved to: {output_path}")
 
