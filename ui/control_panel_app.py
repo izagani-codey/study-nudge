@@ -6,7 +6,7 @@ import json
 import threading
 import time
 from app_paths import data_file
-from main import generate_questions_from_pdf
+from main import generate_questions_from_pdf, generate_questions_from_web
 from ui.popup import show_popup
 
 CONFIG_PATH = data_file("config.json")
@@ -22,6 +22,7 @@ pdf_label = None
 interval_var = None
 timer_label = None
 lang_var = None
+url_var = None
 
 
 def _default_config():
@@ -31,6 +32,7 @@ def _default_config():
         "enabled": False,
         "language_mode": "english",
         "last_pdf": None,
+        "last_url": "",
     }
 
 
@@ -172,43 +174,9 @@ def generate_questions():
     except Exception as exc:
         messagebox.showerror("Generation failed", str(exc))
         return
-    result = subprocess.run(["python", "main.py"], capture_output=True, text=True)
-    if result.returncode != 0:
-        messagebox.showerror("Generation failed", result.stderr.strip() or "Unknown error")
-        return
-
-    messagebox.showinfo("Done", "Questions generated successfully!")
-
-
-# -------------------- UI SETUP --------------------
-root = tk.Tk()
-root.title("Study Nudge – Control Panel")
-root.geometry("520x470")
-
-cfg = load_config()
-
-title = tk.Label(root, text="Study Nudge Control Panel", font=("Arial", 14))
-title.pack(pady=10)
-
-btn_select = tk.Button(root, text="Select PDF", command=select_pdf)
-btn_select.pack(pady=5)
-
-pdf_label = tk.Label(root, text="No PDF selected")
-pdf_label.pack(pady=5)
 
     messagebox.showinfo("Done", f"Generated {count} questions\nSaved to: {output_path}")
 
-
-interval_frame = tk.Frame(root)
-interval_frame.pack(pady=4)
-
-tk.Label(interval_frame, text="Popup interval (minutes):").pack(side="left", padx=(0, 8))
-interval_var = tk.StringVar(value=str(cfg.get("fixed_minutes", 45)))
-interval_entry = tk.Entry(interval_frame, textvariable=interval_var, width=8)
-interval_entry.pack(side="left")
-interval_entry.bind("<Return>", set_interval_minutes)
-
-tk.Button(interval_frame, text="Apply", command=set_interval_minutes).pack(side="left", padx=8)
 
 
 
@@ -218,18 +186,15 @@ def generate_questions_from_url():
         messagebox.showwarning("No URL", "Please paste a URL first.")
         return
 
-lang_var = tk.StringVar(value=cfg.get("language_mode", "english"))
-lang_menu = ttk.Combobox(
-    root,
-    textvariable=lang_var,
-    values=["english", "dhivehi", "mixed"],
-    state="readonly",
-    width=15
-)
-lang_menu.pack(pady=5)
-lang_menu.bind("<<ComboboxSelected>>", lambda e: set_language_mode(lang_var.get()))
+    cfg = load_config()
+    cfg["last_url"] = url
+    save_config(cfg)
 
-    messagebox.showinfo("Done", f"Generated {count} questions\nSaved to: {output_path}")
+    try:
+        count, output_path = generate_questions_from_web(url)
+    except Exception as exc:
+        messagebox.showerror("Website parsing failed", str(exc))
+        return
 
     messagebox.showinfo("Done", f"Generated {count} questions from website\nSaved to: {output_path}")
 
@@ -248,7 +213,7 @@ def update_timer():
 
 
 def run_control_panel():
-    global root, status_label, pdf_label, interval_var, timer_label, lang_var
+    global root, status_label, pdf_label, interval_var, timer_label, lang_var, url_var
 
     root = tk.Tk()
     root.title("Study Nudge – Control Panel")
@@ -264,6 +229,16 @@ def run_control_panel():
     pdf_label.pack(pady=5)
 
     tk.Button(root, text="Generate Questions", command=generate_questions).pack(pady=10)
+
+    url_frame = tk.Frame(root)
+    url_frame.pack(pady=5, fill="x", padx=16)
+
+    tk.Label(url_frame, text="Website URL:").pack(side="left", padx=(0, 8))
+    url_var = tk.StringVar(value=cfg.get("last_url", ""))
+    url_entry = tk.Entry(url_frame, textvariable=url_var, width=42)
+    url_entry.pack(side="left", fill="x", expand=True)
+
+    tk.Button(root, text="Generate from Website", command=generate_questions_from_url).pack(pady=6)
 
     status_label = tk.Label(root, text="Status: STOPPED", fg="red")
     status_label.pack(pady=10)
