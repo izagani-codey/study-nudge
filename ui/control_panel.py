@@ -34,17 +34,6 @@ def _default_config():
     }
 
 
-def _default_config():
-    return {
-        "mode": "fixed",
-        "fixed_minutes": 45,
-        "enabled": False,
-        "language_mode": "english",
-        "last_pdf": None,
-    }
-
-
-# -------------------- CONFIG HELPERS --------------------
 def load_config():
     cfg = _default_config()
     try:
@@ -140,7 +129,6 @@ def set_interval_minutes(_event=None):
     save_config(cfg)
 
 
-# -------------------- PDF HANDLING --------------------
 def select_pdf():
     global selected_pdf
 
@@ -262,17 +250,65 @@ def update_timer():
     root.after(1000, update_timer)
 
 
-update_timer()
-_load_last_pdf_from_config()
+def run_control_panel():
+    global root, status_label, pdf_label, interval_var, timer_label, lang_var
 
     root = tk.Tk()
     root.title("Study Nudge – Control Panel")
     root.geometry("520x470")
 
-# -------------------- INITIAL STATE SYNC --------------------
-if cfg.get("enabled", False):
-    status_label.config(text="Status: RUNNING", fg="green")
-    start_scheduler()
+    cfg = load_config()
+
+    tk.Label(root, text="Study Nudge Control Panel", font=("Arial", 14)).pack(pady=10)
+
+    tk.Button(root, text="Select PDF", command=select_pdf).pack(pady=5)
+
+    pdf_label = tk.Label(root, text="No PDF selected")
+    pdf_label.pack(pady=5)
+
+    tk.Button(root, text="Generate Questions", command=generate_questions).pack(pady=10)
+
+    status_label = tk.Label(root, text="Status: STOPPED", fg="red")
+    status_label.pack(pady=10)
+
+    interval_frame = tk.Frame(root)
+    interval_frame.pack(pady=4)
+
+    tk.Label(interval_frame, text="Popup interval (minutes):").pack(side="left", padx=(0, 8))
+    interval_var = tk.StringVar(value=str(cfg.get("fixed_minutes", 45)))
+    interval_entry = tk.Entry(interval_frame, textvariable=interval_var, width=8)
+    interval_entry.pack(side="left")
+    interval_entry.bind("<Return>", set_interval_minutes)
+
+    tk.Button(interval_frame, text="Apply", command=set_interval_minutes).pack(side="left", padx=8)
+
+    tk.Button(root, text="▶ Start Study Mode", command=start_scheduler).pack(pady=5)
+    tk.Button(root, text="⏹ Stop Study Mode", command=stop_scheduler).pack(pady=5)
+
+    tk.Label(root, text="Language Mode:").pack(pady=5)
+
+    lang_var = tk.StringVar(value=cfg.get("language_mode", "english"))
+    lang_menu = ttk.Combobox(
+        root,
+        textvariable=lang_var,
+        values=["english", "dhivehi", "mixed"],
+        state="readonly",
+        width=15,
+    )
+    lang_menu.pack(pady=5)
+    lang_menu.bind("<<ComboboxSelected>>", lambda e: set_language_mode(lang_var.get()))
+
+    timer_label = tk.Label(root, text="Next popup: --:--", font=("Arial", 11))
+    timer_label.pack(pady=10)
+
+    update_timer()
+    _load_last_pdf_from_config()
+
+    if cfg.get("enabled", False):
+        status_label.config(text="Status: RUNNING", fg="green")
+        start_scheduler()
+
+    root.mainloop()
 
 
 if __name__ == "__main__":

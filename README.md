@@ -10,7 +10,21 @@ A desktop study coach that interrupts usage with active-recall prompts generated
 - Control panel for PDF selection, question generation, interval control, and language mode
 - Persistent app data in `~/.study-nudge` (config, progress, generated questions)
 
-## Run from source
+## Quick launch after downloading from GitHub
+
+### Windows (double-click)
+
+- Double-click `start_windows.bat`
+
+### Terminal (Windows/macOS/Linux)
+
+```bash
+python launch.py
+```
+
+`launch.py` checks/install missing dependencies and starts the app.
+
+## Run from source (manual)
 
 ```bash
 python -m pip install -r requirements.txt
