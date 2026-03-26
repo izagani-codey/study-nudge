@@ -1,9 +1,10 @@
 import tkinter as tk
 import json
 import re
+from app_paths import data_file
 
-QUESTIONS_PATH = "questions.json"
-PROGRESS_PATH = "progress.json"
+QUESTIONS_PATH = data_file("questions.json")
+PROGRESS_PATH = data_file("progress.json")
 
 
 def load_questions():

@@ -1,20 +1,37 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox
 from tkinter import ttk
-import subprocess
 import os
 import json
 import threading
 import time
+from app_paths import data_file
+from main import generate_questions_from_pdf
 from ui.popup import show_popup
 
-# -------------------- GLOBAL STATE --------------------
-CONFIG_PATH = "config.json"
-selected_pdf = None
+CONFIG_PATH = data_file("config.json")
+INPUT_PDF_PATH = data_file("input.pdf")
 
+selected_pdf = None
 scheduler_thread = None
 scheduler_running = False
 next_popup_time = None
+root = None
+status_label = None
+pdf_label = None
+interval_var = None
+timer_label = None
+lang_var = None
+
+
+def _default_config():
+    return {
+        "mode": "fixed",
+        "fixed_minutes": 45,
+        "enabled": False,
+        "language_mode": "english",
+        "last_pdf": None,
+    }
 
 
 def _default_config():
@@ -45,7 +62,6 @@ def save_config(cfg):
         json.dump(cfg, f, indent=2)
 
 
-# -------------------- SCHEDULER LOGIC --------------------
 def scheduler_loop():
     global scheduler_running, next_popup_time
 
@@ -74,7 +90,6 @@ def scheduler_loop():
             time.sleep(1)
 
 
-# -------------------- UI ACTIONS --------------------
 def start_scheduler():
     global scheduler_thread, scheduler_running
 
@@ -157,15 +172,18 @@ def generate_questions():
         messagebox.showwarning("No PDF", "Please select a PDF first.")
         return
 
-    target_path = os.path.join(os.getcwd(), "input.pdf")
-
-    with open(selected_pdf, "rb") as src, open(target_path, "wb") as dst:
+    with open(selected_pdf, "rb") as src, open(INPUT_PDF_PATH, "wb") as dst:
         dst.write(src.read())
 
-    if os.path.getsize(target_path) == 0:
+    if os.path.getsize(INPUT_PDF_PATH) == 0:
         messagebox.showerror("PDF Error", "Copied PDF is empty.")
         return
 
+    try:
+        count, output_path = generate_questions_from_pdf(str(INPUT_PDF_PATH))
+    except Exception as exc:
+        messagebox.showerror("Generation failed", str(exc))
+        return
     result = subprocess.run(["python", "main.py"], capture_output=True, text=True)
     if result.returncode != 0:
         messagebox.showerror("Generation failed", result.stderr.strip() or "Unknown error")
@@ -227,11 +245,9 @@ lang_menu = ttk.Combobox(
 lang_menu.pack(pady=5)
 lang_menu.bind("<<ComboboxSelected>>", lambda e: set_language_mode(lang_var.get()))
 
-timer_label = tk.Label(root, text="Next popup: --:--", font=("Arial", 11))
-timer_label.pack(pady=10)
+    messagebox.showinfo("Done", f"Generated {count} questions\nSaved to: {output_path}")
 
 
-# -------------------- TIMER UPDATE --------------------
 def update_timer():
     if next_popup_time:
         remaining = int(next_popup_time - time.time())
@@ -249,6 +265,9 @@ def update_timer():
 update_timer()
 _load_last_pdf_from_config()
 
+    root = tk.Tk()
+    root.title("Study Nudge – Control Panel")
+    root.geometry("520x470")
 
 # -------------------- INITIAL STATE SYNC --------------------
 if cfg.get("enabled", False):
@@ -256,4 +275,5 @@ if cfg.get("enabled", False):
     start_scheduler()
 
 
-root.mainloop()
+if __name__ == "__main__":
+    run_control_panel()
