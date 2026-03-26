@@ -1,6 +1,7 @@
 import os
 from app_paths import data_file
 from engine.pdf_reader import extract_text
+from engine.web_reader import extract_text_from_url
 from engine.cleaner import clean_text, split_sentences
 from engine.question_generator import generate_questions, save_questions
 

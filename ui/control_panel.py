@@ -196,11 +196,8 @@ btn_select.pack(pady=5)
 pdf_label = tk.Label(root, text="No PDF selected")
 pdf_label.pack(pady=5)
 
-btn_generate = tk.Button(root, text="Generate Questions", command=generate_questions)
-btn_generate.pack(pady=10)
+    messagebox.showinfo("Done", f"Generated {count} questions\nSaved to: {output_path}")
 
-status_label = tk.Label(root, text="Status: STOPPED", fg="red")
-status_label.pack(pady=10)
 
 interval_frame = tk.Frame(root)
 interval_frame.pack(pady=4)
@@ -216,11 +213,12 @@ tk.Button(interval_frame, text="Apply", command=set_interval_minutes).pack(side=
 btn_start = tk.Button(root, text="▶ Start Study Mode", command=start_scheduler)
 btn_start.pack(pady=5)
 
-btn_stop = tk.Button(root, text="⏹ Stop Study Mode", command=stop_scheduler)
-btn_stop.pack(pady=5)
 
-lang_label = tk.Label(root, text="Language Mode:")
-lang_label.pack(pady=5)
+def generate_questions_from_url():
+    url = url_var.get().strip()
+    if not url:
+        messagebox.showwarning("No URL", "Please paste a URL first.")
+        return
 
 lang_var = tk.StringVar(value=cfg.get("language_mode", "english"))
 lang_menu = ttk.Combobox(
@@ -235,6 +233,7 @@ lang_menu.bind("<<ComboboxSelected>>", lambda e: set_language_mode(lang_var.get(
 
     messagebox.showinfo("Done", f"Generated {count} questions\nSaved to: {output_path}")
 
+    messagebox.showinfo("Done", f"Generated {count} questions from website\nSaved to: {output_path}")
 
 def update_timer():
     if next_popup_time:
