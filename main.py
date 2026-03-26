@@ -6,7 +6,11 @@ from engine.cleaner import clean_text, split_sentences
 from engine.question_generator import generate_questions, save_questions
 
 
-def generate_questions_from_text(raw_text, questions_path=None):
+def generate_questions_from_pdf(pdf_path, questions_path=None):
+    if not os.path.exists(pdf_path) or os.path.getsize(pdf_path) == 0:
+        raise RuntimeError("input.pdf is missing or empty. Please select a PDF first.")
+
+    raw_text = extract_text(pdf_path)
     cleaned = clean_text(raw_text)
     sentences = split_sentences(cleaned)
 
@@ -14,25 +18,6 @@ def generate_questions_from_text(raw_text, questions_path=None):
     output_path = questions_path or str(data_file("questions.json"))
     save_questions(questions, output_path)
     return len(questions), output_path
-
-
-def generate_questions_from_pdf(pdf_path, questions_path=None):
-    if not os.path.exists(pdf_path) or os.path.getsize(pdf_path) == 0:
-        raise RuntimeError("input.pdf is missing or empty. Please select a PDF first.")
-
-    raw_text = extract_text(pdf_path)
-    return generate_questions_from_text(raw_text, questions_path)
-
-
-def generate_questions_from_web(url, questions_path=None):
-    if not url.startswith(("http://", "https://")):
-        raise RuntimeError("URL must start with http:// or https://")
-
-    raw_text = extract_text_from_url(url)
-    if len(raw_text) < 100:
-        raise RuntimeError("Not enough readable text found on that page.")
-
-    return generate_questions_from_text(raw_text, questions_path)
 
 
 if __name__ == "__main__":

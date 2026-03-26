@@ -23,15 +23,6 @@ python launch.py
 ```
 
 `launch.py` checks/install missing dependencies and starts the app.
-`launch.py` now loads `ui/control_panel_app.py`, so it is resilient if an old/conflicted `ui/control_panel.py` is still in your working tree.
-
-
-## New: Generate questions from websites
-
-1. Open the app (`python launch.py` or double-click `start_windows.bat`).
-2. Paste a full URL (must start with `http://` or `https://`) in the **Website URL** field.
-3. Click **Generate from Website**.
-4. Start Study Mode to get popup questions from that webpage content.
 
 ## Run from source (manual)
 
