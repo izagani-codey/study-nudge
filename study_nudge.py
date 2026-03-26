@@ -1,3 +1,4 @@
+from ui.control_panel_app import run_control_panel
 from ui.control_panel import run_control_panel
 
 

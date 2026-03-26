@@ -1,3 +1,12 @@
+"""Compatibility wrapper.
+
+Some local checkouts still import `ui.control_panel` directly.
+Keep this module tiny and delegate to `ui.control_panel_app`.
+"""
+
+from ui.control_panel_app import run_control_panel
+
+
 import tkinter as tk
 from tkinter import filedialog, messagebox
 from tkinter import ttk
