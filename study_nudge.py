@@ -1,5 +1,5 @@
-import subprocess
-import sys
+from ui.control_panel_app import run_control_panel
+
 
 if __name__ == "__main__":
-    subprocess.run([sys.executable, "ui/control_panel.py"])
+    run_control_panel()
