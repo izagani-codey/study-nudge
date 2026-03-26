@@ -24,7 +24,7 @@ def main():
     project_root = Path(__file__).resolve().parent
     ensure_dependencies(project_root)
 
-    from ui.control_panel_app import run_control_panel
+    from ui.control_panel import run_control_panel
 
     run_control_panel()
 
